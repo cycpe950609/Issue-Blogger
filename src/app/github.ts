@@ -4,6 +4,26 @@ import qs from "qs";
 import axios from "axios";
 import { redirect } from "next/navigation";
 import QueryString from "qs";
+import { cookies, headers } from "next/headers";
+
+export const githubVilidateToken = async () => {
+    const cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        let token = cookieStore.get("access_token")?.value;
+        // console.log("token: ", token);
+        if(token === undefined || token === null)
+            return false;
+        let rtv = await axios.get("https://api.github.com/user",{ 
+            headers: {
+                "Authorization" : `Bearer ${token}`,
+            }
+        })
+        // console.log("Get user test",rtv.status);
+        if(rtv.status >= 200 && rtv.status < 300)
+            return true;
+    }
+    return false;
+}
 
 export const getGithubToken = async (code: string) => {
     // console.log(req.body.data);
