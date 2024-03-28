@@ -5,6 +5,54 @@ import axios from "axios";
 import { redirect } from "next/navigation";
 import QueryString from "qs";
 import { cookies, headers } from "next/headers";
+import { BloggerListItemType } from "./list/page";
+
+const PAGE_SIZE = 10
+
+export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType[]> = async (pageIdx: number) => {
+    const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+    const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+    const GITHUB_LIST_ISSUE_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}/issues`;
+
+
+    const cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        console.log("===========================LIST ISSUES===========================");
+        let token = cookieStore.get("access_token")?.value;
+
+        const queryOption = {
+            per_page    : PAGE_SIZE,
+            page        : pageIdx,
+        }
+        const qstring = qs.stringify(queryOption,{ arrayFormat: 'comma' });
+        
+        const selectUri = `${GITHUB_LIST_ISSUE_URL}?${qstring}`
+        console.log(selectUri)
+
+        const rtv = await axios.get(selectUri,{
+            headers : {
+                "Accept" : "application/vnd.github+json",
+                "Authorization" : `Bearer ${token}`,
+                "X-GitHub-Api-Version" : "2022-11-28"
+            }
+        })
+
+        let itemLst:BloggerListItemType[] = [];
+        rtv.data.forEach((item:any) => {
+            itemLst.push({
+                title: item.title,
+                id: 0,
+                content: item.body
+            } as BloggerListItemType)
+        })
+        console.log(itemLst)
+        console.log("=========================LIST ISSUES END=========================");
+        return itemLst;
+    }
+    else {
+        throw new Error("AccessToken is not found");
+    }
+}
 
 export const githubVilidateToken = async () => {
     const cookieStore = cookies();
