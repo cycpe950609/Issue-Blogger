@@ -59,6 +59,7 @@ export default function Home() {
                 setTimeout(() => githubLogin(), 2000)
             }
             else {
+                console.log("Already logged in");
                 router.push("/list");
             }
         })

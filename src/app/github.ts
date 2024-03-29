@@ -40,7 +40,7 @@ export const githubIsRepoOwner = async () => {
                 "X-GitHub-Api-Version" : "2022-11-28"
             }
         })
-        console.log("Get repo",rtvRepo.data);
+        // console.log("Get repo",rtvRepo.data);
         const repoOwnerID = rtvRepo.data.owner.id;
 
         return userID === repoOwnerID;

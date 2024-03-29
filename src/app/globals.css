@@ -3,17 +3,47 @@
 @tailwind utilities;
 
 html, body {
-    @apply w-full h-full
+    @apply w-full h-full;
 }
 
 .lstHeader {
-    @apply border-b-2 border-black
+    @apply border-b-2 border-black;
 }
 
 .lstItem {
-    @apply border-b-[1px] border-gray-600
+    @apply border-b-[1px] border-gray-600;
 }
 
-.btnNewBlogger {
-    @apply flex items-center justify-center bg-green-500 border-green-900 border-2 p-0 rounded-lg mx-2
+.button {
+    @apply select-none;
+    @apply flex items-center justify-center bg-green-500 border-green-900 border-2 p-0 rounded-lg mx-2;
+}
+
+.btnNewBlogger:hover {
+    @apply bg-green-600 border-green-950;
+}
+
+.dialog-bg {
+    @apply flex fixed left-0 top-0 w-full h-full overflow-hidden justify-center items-center;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.dialog {
+    @apply w-auto h-auto rounded-lg border-solid border-black border-4 bg-white;
+}
+
+.dialog-title {
+    @apply flex-grow;
+}
+
+.dialog-header {
+    @apply bg-black text-white p-[15px] flex flex-row;
+}
+
+.dialog-close {
+    @apply cursor-pointer float-right font-bold ml-[25px];
+}
+
+.dialog-body {
+    @apply h-auto w-auto p-[15px] pt-[20px] pb-[20px];
 }
