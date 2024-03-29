@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import useOnScreen from "../utils/useOnScreen";
-import { githubListBlogger } from "../github";
+import { githubIsRepoOwner, githubListBlogger } from "../github";
 
 const PAGE_SIZE = 10
 
@@ -16,7 +16,7 @@ const BloggerListItem = (props: BloggerListItemProps) => {
     const CONTENT_MAX_SIZE = 8;
     return <tr className="w-full h-10 lstItem">
         <th>{props.id}</th>
-        <th>
+        <th colSpan={2}>
             <div className="flex flex-col">
                 <span>{props.title}</span>
                 <span className="font-thin text-xs">{props.content.length > CONTENT_MAX_SIZE-3 ? `${props.content.slice(0,CONTENT_MAX_SIZE-3)}...` : props.content}</span>
@@ -44,14 +44,32 @@ const testBlogLst = [
     {title: "Test16", id:15},
 ]
 
+type BtnNewBloggerPropsType = {
+    onClick: () => void;
+}
+const BtnNewBlogger = (props: BtnNewBloggerPropsType) => {
+    return <div className="btnNewBlogger" onClick={props.onClick}>
+        <span>Create</span>
+    </div>
+}
+
 export default function List() {
     const [blogLst, setBlogLst] = useState([] as BloggerListItemType[]);
     const [blogIdx, setBlogIdx] = useState(1);
     const [lastPage, setLastPage] = useState(0);
-    const [canLoading, setCanLoading] = useState(false);
+    const [canLoading, setCanLoading] = useState(true);
+    const [repoOwner, setRepoOwner] = useState(false);
 
     const refOverflow = useRef(null)
     const isVisible = useOnScreen(refOverflow);
+
+    useEffect(() => {
+        let updateRepoOwner = async () => {
+            const isOwner = await githubIsRepoOwner();
+            setRepoOwner(isOwner);
+        };
+        updateRepoOwner();
+    },[])
 
     useEffect(() => {
         if(isVisible) {
@@ -68,18 +86,23 @@ export default function List() {
         }
     }, [isVisible])
 
+    const createNewBlogger = () => {
+        alert("Create new blogger");
+    }
+
     return <div className="w-full h-full flex flex-col overflow-scroll">
         <table className="w-full text-left">
             <thead className="h-10 lstHeader">
                 <tr>
-                    <th>ID</th>
+                    <th className="w-12">ID</th>
                     <th>Title</th>
+                    <th className="w-24">{repoOwner ? <BtnNewBlogger onClick={createNewBlogger}/> : ""}</th>
                 </tr>
             </thead>
             <tbody>
                 {blogLst.map((blog) => <BloggerListItem key={blog.id} title={blog.title} id={blog.id} content={blog.content} />)}
                 <tr className="w-full h-10 text-center" ref={refOverflow}>
-                    <td colSpan={2}>{canLoading ? "Loading ..." : "No more article."}</td>
+                    <td colSpan={3}>{canLoading ? "Loading ..." : "No more article."}</td>
                 </tr>
             </tbody>
         </table>

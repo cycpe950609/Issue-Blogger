@@ -9,6 +9,45 @@ import { BloggerListItemType } from "./list/page";
 
 const PAGE_SIZE = 10
 
+export const githubIsRepoOwner = async () => {
+    let cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        let token = cookieStore.get("access_token")?.value;
+        // Get user's id
+        if(token === undefined || token === null)
+            return false;
+        const rtvUser = await axios.get("https://api.github.com/user",{ 
+            headers: {
+                "Accept" : "application/vnd.github+json",
+                "Authorization" : `Bearer ${token}`,
+                "X-GitHub-Api-Version" : "2022-11-28"
+            }
+        })
+        // console.log("Get user",rtvUser.data);
+        const userID = rtvUser.data.id;
+        if( !( rtvUser.status >= 200 && rtvUser.status < 300 ) )
+            return false;
+
+        // Get repo's owner id
+        const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+        const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+        const GITHUB_REPO_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}`;
+
+        const rtvRepo = await axios.get(GITHUB_REPO_URL,{
+            headers : {
+                "Accept" : "application/vnd.github+json",
+                "Authorization" : `Bearer ${token}`,
+                "X-GitHub-Api-Version" : "2022-11-28"
+            }
+        })
+        console.log("Get repo",rtvRepo.data);
+        const repoOwnerID = rtvRepo.data.owner.id;
+
+        return userID === repoOwnerID;
+    }
+    return false;
+}
+
 export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType[]> = async (pageIdx: number) => {
     const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
     const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
@@ -23,6 +62,7 @@ export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType
         const queryOption = {
             per_page    : PAGE_SIZE,
             page        : pageIdx,
+            direction   : 'asc'
         }
         const qstring = qs.stringify(queryOption,{ arrayFormat: 'comma' });
         
@@ -41,11 +81,11 @@ export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType
         rtv.data.forEach((item:any) => {
             itemLst.push({
                 title: item.title,
-                id: 0,
+                id: item.number,
                 content: item.body
             } as BloggerListItemType)
         })
-        console.log(itemLst)
+        // console.log(rtv.data)
         console.log("=========================LIST ISSUES END=========================");
         return itemLst;
     }
