@@ -24,12 +24,12 @@ html, body {
 }
 
 .dialog-bg {
-    @apply flex fixed left-0 top-0 w-full h-full overflow-hidden justify-center items-center;
+    @apply flex w-full h-full overflow-hidden justify-center items-center ;
     background-color: rgba(0, 0, 0, 0.7);
 }
 
 .dialog {
-    @apply w-auto h-auto rounded-lg border-solid border-black border-4 bg-white;
+    @apply w-auto h-auto rounded-lg border-solid border-black border-4 bg-white pointer-events-none;
 }
 
 .dialog-title {
@@ -41,9 +41,9 @@ html, body {
 }
 
 .dialog-close {
-    @apply cursor-pointer float-right font-bold ml-[25px];
+    @apply cursor-pointer float-right font-bold ml-[25px] pointer-events-auto;
 }
 
 .dialog-body {
-    @apply h-auto w-auto p-[15px] pt-[20px] pb-[20px];
+    @apply h-auto w-auto p-[15px] pt-[20px] pb-[20px] pointer-events-auto;
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import useOnScreen from "../utils/useOnScreen";
 import { githubIsRepoOwner, githubListBlogger } from "../github";
 import Link from "next/link";
+import LinkButton from "../utils/button";
 
 const PAGE_SIZE = 10
 
@@ -45,20 +46,10 @@ const testBlogLst = [
     {title: "Test16", id:15},
 ]
 
-type ButtonPropsType = {
-    href: string;
-    children?: React.ReactNode;
-}
-const Button = (props: ButtonPropsType) => {
-    return <Link className="button" href={props.href}>
-        {props.children}
-    </Link>
-}
 
 export default function List() {
     const [blogLst, setBlogLst] = useState([] as BloggerListItemType[]);
     const [blogIdx, setBlogIdx] = useState(1);
-    const [lastPage, setLastPage] = useState(0);
     const [canLoading, setCanLoading] = useState(true);
     const [repoOwner, setRepoOwner] = useState(false);
 
@@ -82,7 +73,7 @@ export default function List() {
                 }
                 let newBlogLst = [...blogLst,...newLstItem];
                 setBlogLst(newBlogLst);
-                setLastPage(lastPage+1);
+                setBlogIdx(blogIdx+1);
             }
             updateLst()
         }
@@ -94,7 +85,7 @@ export default function List() {
                 <tr>
                     <th className="w-12">ID</th>
                     <th>Title</th>
-                    <th className="w-24">{repoOwner ? <Button href="/editor">Create</Button> : ""}</th>
+                    <th className="w-24">{repoOwner ? <LinkButton href="/editor?mode=create">Create</LinkButton> : ""}</th>
                 </tr>
             </thead>
             <tbody>

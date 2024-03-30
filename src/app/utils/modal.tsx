@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation";
-import React from "react"
+import React, { useReducer, useRef, useState } from "react"
 
 export type ModalPropsType = {
     title: string;
@@ -9,8 +9,37 @@ export type ModalPropsType = {
 export default function Modal(props: ModalPropsType) {
     const router = useRouter()
 
-    return <div className="w-full h-full pointer-events-auto dialog-bg">
-        <div className="dialog">
+    const dialogRef = useRef<HTMLDivElement>(null);
+
+    const [isMouseDown, setIsMouseDown] = useState(false);
+
+    const dialogBGMouseDown = (e: any) => {
+        const ele = dialogRef.current;
+        if(ele != null) {
+            const rect = ele.getBoundingClientRect();
+            if(e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                // console.log("Outside of Dialog")
+                setIsMouseDown(true);
+            }
+        }
+    }
+
+    const dialogBGMouseUp = (e: any) => {
+        const ele = dialogRef.current;
+        if(ele != null) {
+            const rect = ele.getBoundingClientRect();
+            if(e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                // console.log("Outside of Dialog")
+                if(isMouseDown) {
+                    setIsMouseDown(false);
+                    router.back();
+                }
+            }
+        }
+    }
+
+    return <div className="pointer-events-auto dialog-bg" /*onMouseDown={dialogBGMouseDown} onMouseUp={dialogBGMouseUp}*/ >
+        <div className="dialog" ref={dialogRef}>
             <div className="dialog-header">
                 <div className="dialog-title">{props.title}</div>
                 <div className="dialog-close" onClick={() => {router.back()}}>

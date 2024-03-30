@@ -9,6 +9,40 @@ import { BloggerListItemType } from "./list/page";
 
 const PAGE_SIZE = 10
 
+export const githubCreateIssue = async (title: string, content: string) => {
+    const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+    const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+    const GITHUB_CREATE_ISSUE_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}/issues`
+
+    const cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        let token = cookieStore.get("access_token")?.value;
+        if(token === undefined || token === null)
+            throw new Error("Access token is not exist")
+
+        if(title.length === 0)
+            throw new Error("Title is required.");
+        if(content.length < 30)
+            throw new Error("Content too short. Must longer than 30 words.");
+
+        const createOption = {
+            title       : title,
+            body        : content,
+        }
+
+        const rtv = await axios.post(GITHUB_CREATE_ISSUE_URL, JSON.stringify(createOption),{
+            headers : {
+                "Accept" : "application/vnd.github+json",
+                "Authorization" : `Bearer ${token}`,
+                "X-GitHub-Api-Version" : "2022-11-28",
+                'Content-Type':'application/x-www-form-urlencoded'
+            },
+        })
+
+        console.log(rtv)
+    }
+}
+
 export const githubIsRepoOwner = async () => {
     let cookieStore = cookies();
     if(cookieStore.has("access_token")) {

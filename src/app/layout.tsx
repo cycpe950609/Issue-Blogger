@@ -23,7 +23,6 @@ export default function RootLayout({
   modal: React.ReactNode;
   children: React.ReactNode;
 }>) {
-  console.log("modal : ",modal);
   return (
     <html lang="en">
       <body className="w-full h-full">
