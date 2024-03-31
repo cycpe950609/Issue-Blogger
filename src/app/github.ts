@@ -97,6 +97,9 @@ export const githubViewIssue = async (id: number) => {
         },
     })
 
+    if(rtv.data.state === "closed")
+        throw new Error("INVISIBLE_POST");
+
     let post: BloggerPostType = {
         title: rtv.data.title,
         id: rtv.data.id,

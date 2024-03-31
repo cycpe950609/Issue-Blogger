@@ -60,8 +60,11 @@ export default function List() {
     const [canLoading, setCanLoading] = useState(true);
     const [repoOwner, setRepoOwner] = useState(false);
 
-    const refOverflow = useRef(null)
-    const isVisible = useOnScreen(refOverflow);
+    const refScroll = useRef<HTMLDivElement>(null)
+    const refWindowSize = useRef<HTMLDivElement>(null)
+    const refOverflow = useRef<HTMLDivElement>(null)
+
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         let updateRepoOwner = async () => {
@@ -71,8 +74,40 @@ export default function List() {
         updateRepoOwner();
     },[])
 
+    const isLoadingVisible = () => {
+        let refLoading = refOverflow.current;
+        if(refLoading === null) return false;
+        let refWindow = refWindowSize.current;
+        if(refWindow === null) return false;
+    
+        const xLoading = refLoading.getBoundingClientRect().top;
+        const hWindow = refWindow.getBoundingClientRect().height;
+        // console.log(xLoading, hWindow)
+        let visible = xLoading < hWindow;
+        return visible;
+    }
+
     useEffect(() => {
-        if(isVisible) {
+        let scrollHandler = (e?: any) => {
+            if(e !== undefined)
+                e.preventDefault();
+            let visible = isLoadingVisible();
+            setIsVisible(visible);
+        }
+        let ref = refScroll.current;
+        if(ref === null) return;
+        ref.addEventListener("scroll", scrollHandler);
+        scrollHandler();
+        return () => {
+            if(ref === null) return;
+            ref.removeEventListener("scroll", scrollHandler);
+        }
+    },[])
+
+    useEffect(() => {
+        let checkVisible = isLoadingVisible();
+        if(checkVisible && canLoading) {
+            // console.log("Load more at ", blogIdx);
             let updateLst = async () => {
                 let newLstItem = await githubListBlogger(blogIdx);
                 if(newLstItem.length < LOAD_PAGE_SIZE) {
@@ -84,9 +119,9 @@ export default function List() {
             }
             updateLst()
         }
-    }, [isVisible])
+    },[isVisible, blogIdx])
 
-    return <div className="w-full h-full flex flex-col overflow-scroll">
+    return <div className="w-full h-full flex flex-col overflow-scroll" ref={refScroll}>
         <table className="w-full text-left">
             <thead className="h-10 lstHeader">
                 <tr>
@@ -102,5 +137,6 @@ export default function List() {
                 </tr>
             </tbody>
         </table>
+        <div ref={refWindowSize} className="w-full h-full pointer-events-none fixed top-0 left-0"></div>
     </div>
 }

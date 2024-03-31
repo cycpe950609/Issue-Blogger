@@ -1,6 +1,5 @@
 "use client"
 import { githubCreateIssue, githubUpdateIssue, githubViewIssue } from "@/app/github";
-import LinkButton from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useSearchParams, useRouter } from "next/navigation"
 import React, { useEffect, useRef, useState } from "react"

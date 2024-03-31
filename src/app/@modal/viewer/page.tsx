@@ -10,7 +10,6 @@ import "github-markdown-css/github-markdown-light.css"
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import remarkFrontmatter from "remark-frontmatter";
-import remarkGithub, { defaultBuildUrl } from "remark-github";
 
 export type BloggerPostType = {
     title: string;
@@ -66,11 +65,24 @@ export default function Viewer() {
     
     useEffect(() => {
         const loadPost = async () => {
-            let post = await githubViewIssue(id);
-            setTitle(post.title);
-            setContent(post.content);
-            let postComments = await githubViewIssueComments(id);
-            setComments(postComments);
+            try {
+                let post = await githubViewIssue(id);
+                setTitle(post.title);
+                setContent(post.content);
+                let postComments = await githubViewIssueComments(id);
+                setComments(postComments);
+            }
+            catch (e: any) {
+                switch (e.message) {
+                    case "INVISIBLE_POST": {
+                        router.back();//Close the modal
+                        break;
+                    }
+                    default: {
+                        console.error(e.message);
+                    }
+                }
+            }
         }
         loadPost();
     },[id])
@@ -84,7 +96,7 @@ export default function Viewer() {
         updateRepoOwner();
     },[])
     
-    const isDelete = params.has("del");
+    const [isDelete, setIsDelete] = useState(false);
 
     return <Modal title="Viewer">
         <div className="w-[80vw] h-[65vh] overflow-y-auto overflow-x-clip relative float">
@@ -92,7 +104,7 @@ export default function Viewer() {
                 <span className="text-nowrap justify-center align-middle">Title : </span>
                 <span className="text-nowrap flex-grow pl-2">{title}</span>
                 {repoOwner ? <>
-                    <LinkButton className="px-4 bg-red-500 border-red-900" href={`/viewer?del=true&id=${id}`}>Delete</LinkButton>
+                    <button className={twMerge(BUTTON_CSS_CLASS,"px-4 bg-red-500 border-red-900")} onClick={() => setIsDelete(true)}>Delete</button>
                     <LinkButton className="px-4" href={`/editor?mode=edit&id=${id}`}>Edit</LinkButton>
                 </> : null}
             </div>
@@ -109,7 +121,7 @@ export default function Viewer() {
                 <span className="w-full h-10 text-center text-gray-700">No more comment here.</span>
             </div>
             {isDelete && repoOwner ? <div className="absolute top-0 left-0 w-full h-full">
-                <Modal title={`Do you want to delete post ${id} ?`}>
+                <Modal title={`Do you want to delete post ${id} ?`} onClose={() => setIsDelete(false)}>
                     <div className="w-full h-full flex flex-row">
                         <button 
                             className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
@@ -117,14 +129,18 @@ export default function Viewer() {
                                 const deletePost = async () => {
                                     return await githubDeleteIssue(id);
                                 }
-                                deletePost().then(() => { router.back(); router.back(); router.refresh();});
+                                deletePost().then(() => { 
+                                    setIsDelete(false);
+                                    router.back(); 
+                                    router.refresh();
+                                });
                             }}
                         >
                             Delete
                         </button>
                         <button 
                             className={twMerge(BUTTON_CSS_CLASS, "flex-grow")} 
-                            onClick={()=> router.back()}>
+                            onClick={()=> setIsDelete(false)}>
                                 Cancel
                         </button>
                     </div>
