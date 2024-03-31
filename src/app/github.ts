@@ -10,6 +10,40 @@ import { BloggerPostType } from "./@modal/viewer/page";
 
 const PAGE_SIZE = 10
 
+export const githubDeleteIssue = async (id: number) => {
+    const cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        console.log("===========================CLOSE ISSUE============================");
+        const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+        const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+        if(GITHUB_ISSUE_BLOGGER_USERNAME === undefined || GITHUB_ISSUE_BLOGGER_REPO_NAME === undefined)
+            throw new Error("USERNAME/REPO should not be undefined");
+
+        let token = cookieStore.get("access_token")?.value;
+        const github = new Octokit({
+            auth: token
+        })
+
+        const rtv = await github.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+            owner: GITHUB_ISSUE_BLOGGER_USERNAME,
+            repo: GITHUB_ISSUE_BLOGGER_REPO_NAME,
+            issue_number: id,
+            state: "closed",
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            },
+        })
+        if(rtv.status >= 200 && rtv.status < 300)
+            return true;
+        console.log(rtv)
+        console.log("=========================CLOSE ISSUE END==========================");
+    }
+    else {
+        throw new Error("AccessToken is not found");
+    }
+    return false;
+}
+
 export const githubViewIssue = async (id: number) => {
     const cookieStore = cookies();
     if(cookieStore.has("access_token")) {

@@ -1,9 +1,9 @@
 "use client"
-import { githubCreateIssue } from "@/app/github";
+import { githubCreateIssue, githubViewIssue } from "@/app/github";
 import LinkButton from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useSearchParams, useRouter } from "next/navigation"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 export default function Editor() {
     const router = useRouter()
@@ -23,6 +23,17 @@ export default function Editor() {
 
     const hasMode = params.has("mode");
     const mode = (hasMode && hasID) ? params.get("mode")! : "create";
+
+    useEffect(() => {
+        if(mode === "edit" && hasID) {
+            let loadPost = async () => {
+                let post = await githubViewIssue(id);
+                setTitle(post.title);
+                setContent(post.content);
+            }
+            loadPost();
+        }
+    }, [id, hasID, mode])
 
     const validateForm = () => {
         console.log("Validate form");

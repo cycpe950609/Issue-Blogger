@@ -14,11 +14,6 @@ html, body {
     @apply border-b-[1px] border-gray-600;
 }
 
-.button {
-    @apply select-none;
-    @apply flex items-center justify-center bg-green-500 border-green-900 border-2 p-0 rounded-lg mx-2;
-}
-
 .btnNewBlogger:hover {
     @apply bg-green-600 border-green-950;
 }
