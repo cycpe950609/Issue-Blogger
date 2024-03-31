@@ -50,6 +50,7 @@ export default function Editor() {
             githubCreateIssue(title, content)
             .then(() => {
                 router.back();
+                router.refresh();
             })
         }
         else if(bodyLength < 30 && titleLength > 0) {
