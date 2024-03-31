@@ -1,5 +1,5 @@
 "use client"
-import { githubCreateIssue, githubViewIssue } from "@/app/github";
+import { githubCreateIssue, githubUpdateIssue, githubViewIssue } from "@/app/github";
 import LinkButton from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -22,7 +22,7 @@ export default function Editor() {
     const id = hasID ? parseInt(params.get("id")!) : 0;
 
     const hasMode = params.has("mode");
-    const mode = (hasMode && hasID) ? params.get("mode")! : "create";
+    const mode = hasID ? params.get("mode")||"create" : "create";
 
     useEffect(() => {
         if(mode === "edit" && hasID) {
@@ -44,14 +44,21 @@ export default function Editor() {
         if(bodyLength >= 30 && titleLength > 0) {
             setShowAlert(false);
             setAlertMessage("");
-            //TODO: Create/Save the title/content
             const title = txtTitleRef.current!.value;
             const content = txtContentRef.current!.value;
-            githubCreateIssue(title, content)
-            .then(() => {
-                router.back();
-                router.refresh();
-            })
+            if(mode === "create") {
+                githubCreateIssue(title, content)
+                .then(() => {
+                    router.back();
+                    router.refresh();
+                })
+            } else if(mode === "edit") {
+                githubUpdateIssue(id, title, content)
+                .then(() => {
+                    console.log("Save Edit Success")
+                    router.back();
+                })
+            }
         }
         else if(bodyLength < 30 && titleLength > 0) {
             setShowAlert(true);
