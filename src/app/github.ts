@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { BloggerListItemType } from "./list/page";
 import { Octokit } from "@octokit/core";
 import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
-import { BloggerPostType } from "./@modal/viewer/page";
+import { BloggerCommentType, BloggerPostType } from "./@modal/viewer/page";
 import { LOAD_PAGE_SIZE } from "./utils/globalParams";
 
 const getGithubAuth = () => {
@@ -106,6 +106,32 @@ export const githubViewIssue = async (id: number) => {
     console.log(post)
     console.log("=========================LIST ISSUE END==========================");
     return post;
+}
+
+export const githubViewIssueComments = async (id: number) => {
+    const client = getGithubAuth();
+    const [username, repo] = getGithubRepo();
+    
+    console.log("===========================LIST ISSUE COMMENT==========================");
+    const rtv = await client.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner: username,
+        repo: repo,
+        issue_number: id,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        },
+    })
+    
+    let comments = rtv.data.map(comment => {
+        return {
+            user: comment.user?.login || "NoBody",
+            content: comment.body
+        } as BloggerCommentType
+    })
+
+    console.log(rtv.data)
+    console.log("=========================LIST ISSUE COMMENT END==========================");
+    return comments
 }
 
 export const githubCreateIssue = async (title: string, content: string) => {

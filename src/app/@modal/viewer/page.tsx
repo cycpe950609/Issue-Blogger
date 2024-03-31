@@ -1,5 +1,5 @@
 "use client"
-import { githubDeleteIssue, githubIsRepoOwner, githubViewIssue } from "@/app/github";
+import { githubDeleteIssue, githubIsRepoOwner, githubViewIssue, githubViewIssueComments } from "@/app/github";
 import LinkButton, { BUTTON_CSS_CLASS } from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +13,21 @@ export type BloggerPostType = {
     content: string;
 }
 
+export type BloggerCommentType = {
+    user: string;
+    content: string;
+}
+
+type CommentItemProps = BloggerCommentType & {}
+const CommentItem = (props: CommentItemProps) => {
+    return <div className="flex flex-col lstItem mb-2 px-4">
+    <span className="font-light text-gray-800 text-xs mb-1">{props.user}</span>
+    <span>
+        {props.content}
+    </span>
+</div>
+}
+
 export default function Viewer() {
 
     const router = useRouter();
@@ -24,6 +39,7 @@ export default function Viewer() {
 
     const [title, setTitle] = useState("Title");
     const [content, setContent] = useState("");
+    const [comments, setComments] = useState([] as BloggerCommentType[]);
 
     
     useEffect(() => {
@@ -31,6 +47,8 @@ export default function Viewer() {
             let post = await githubViewIssue(id);
             setTitle(post.title);
             setContent(post.content);
+            let postComments = await githubViewIssueComments(id);
+            setComments(postComments);
         }
         loadPost();
     },[id])
@@ -61,8 +79,14 @@ export default function Viewer() {
                     {content}
                 </Markdown>
             </div>
-            <div className="w-full flex flex-row h-10 pt-2">
-                A lots of comments...
+            <div className="w-full flex flex-col h-fit pt-2">
+                {
+                    comments.length > 0?
+                    comments.map((comment,idx) => <CommentItem key={idx} {...comment} />)
+                    :
+                    <></>
+                }
+                <span className="w-full h-10 text-center text-gray-700">No more comment here.</span>
             </div>
             {isDelete && repoOwner ? <div className="absolute top-0 left-0 w-full h-full">
                 <Modal title={`Do you want to delete post ${id} ?`}>
