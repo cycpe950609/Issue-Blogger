@@ -1,19 +1,54 @@
 "use server"
 import React from "react"
 import qs from "qs";
-import axios from "axios";
 import { redirect } from "next/navigation";
-import QueryString from "qs";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { BloggerListItemType } from "./list/page";
+import { Octokit } from "@octokit/core";
+import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
+import { BloggerPostType } from "./@modal/viewer/page";
 
 const PAGE_SIZE = 10
 
-export const githubCreateIssue = async (title: string, content: string) => {
-    const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
-    const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
-    const GITHUB_CREATE_ISSUE_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}/issues`
+export const githubViewIssue = async (id: number) => {
+    const cookieStore = cookies();
+    if(cookieStore.has("access_token")) {
+        console.log("===========================LIST ISSUE============================");
+        const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+        const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+        if(GITHUB_ISSUE_BLOGGER_USERNAME === undefined || GITHUB_ISSUE_BLOGGER_REPO_NAME === undefined)
+            throw new Error("USERNAME/REPO should not be undefined");
 
+        let token = cookieStore.get("access_token")?.value;
+        const github = new Octokit({
+            auth: token
+        })
+
+        const rtv = await github.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
+            owner: GITHUB_ISSUE_BLOGGER_USERNAME,
+            repo: GITHUB_ISSUE_BLOGGER_REPO_NAME,
+            issue_number: id,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            },
+        })
+
+        let post: BloggerPostType = {
+            title: rtv.data.title,
+            id: rtv.data.id,
+            content: rtv.data.body || ""
+        }
+        
+        console.log(post)
+        console.log("=========================LIST ISSUE END==========================");
+        return post;
+    }
+    else {
+        throw new Error("AccessToken is not found");
+    }
+}
+
+export const githubCreateIssue = async (title: string, content: string) => {
     const cookieStore = cookies();
     if(cookieStore.has("access_token")) {
         let token = cookieStore.get("access_token")?.value;
@@ -25,20 +60,24 @@ export const githubCreateIssue = async (title: string, content: string) => {
         if(content.length < 30)
             throw new Error("Content too short. Must longer than 30 words.");
 
-        const createOption = {
-            title       : title,
-            body        : content,
-        }
-
-        const rtv = await axios.post(GITHUB_CREATE_ISSUE_URL, JSON.stringify(createOption),{
-            headers : {
-                "Accept" : "application/vnd.github+json",
-                "Authorization" : `Bearer ${token}`,
-                "X-GitHub-Api-Version" : "2022-11-28",
-                'Content-Type':'application/x-www-form-urlencoded'
-            },
+        const github = new Octokit({
+            auth: token
         })
-
+        
+        const GITHUB_ISSUE_BLOGGER_USERNAME = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+        const GITHUB_ISSUE_BLOGGER_REPO_NAME = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+        if(GITHUB_ISSUE_BLOGGER_USERNAME === undefined || GITHUB_ISSUE_BLOGGER_REPO_NAME === undefined)
+            throw new Error("USERNAME/REPO should not be undefined");
+            
+        const rtv = await github.request('POST /repos/{owner}/{repo}/issues', {
+            owner: GITHUB_ISSUE_BLOGGER_USERNAME,
+            repo: GITHUB_ISSUE_BLOGGER_REPO_NAME,
+            title: title,
+            body: content,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        })
         console.log(rtv)
     }
 }
@@ -50,11 +89,12 @@ export const githubIsRepoOwner = async () => {
         // Get user's id
         if(token === undefined || token === null)
             return false;
-        const rtvUser = await axios.get("https://api.github.com/user",{ 
+        const github = new Octokit({
+            auth: token
+        })
+        const rtvUser = await github.request('GET /user', {
             headers: {
-                "Accept" : "application/vnd.github+json",
-                "Authorization" : `Bearer ${token}`,
-                "X-GitHub-Api-Version" : "2022-11-28"
+                'X-GitHub-Api-Version': '2022-11-28'
             }
         })
         // console.log("Get user",rtvUser.data);
@@ -65,13 +105,14 @@ export const githubIsRepoOwner = async () => {
         // Get repo's owner id
         const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
         const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
-        const GITHUB_REPO_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}`;
+        if(GITHUB_ISSUE_BLOGGER_USERNAME === undefined || GITHUB_ISSUE_BLOGGER_REPO_NAME === undefined)
+            throw new Error("USERNAME/REPO should not be undefined");
 
-        const rtvRepo = await axios.get(GITHUB_REPO_URL,{
-            headers : {
-                "Accept" : "application/vnd.github+json",
-                "Authorization" : `Bearer ${token}`,
-                "X-GitHub-Api-Version" : "2022-11-28"
+        const rtvRepo = await github.request('GET /repos/{owner}/{repo}',{
+            owner: GITHUB_ISSUE_BLOGGER_USERNAME,
+            repo: GITHUB_ISSUE_BLOGGER_REPO_NAME,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
             }
         })
         // console.log("Get repo",rtvRepo.data);
@@ -83,32 +124,28 @@ export const githubIsRepoOwner = async () => {
 }
 
 export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType[]> = async (pageIdx: number) => {
-    const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
-    const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
-    const GITHUB_LIST_ISSUE_URL = `https://api.github.com/repos/${GITHUB_ISSUE_BLOGGER_USERNAME}/${GITHUB_ISSUE_BLOGGER_REPO_NAME}/issues`;
-
-
     const cookieStore = cookies();
     if(cookieStore.has("access_token")) {
         console.log("===========================LIST ISSUES===========================");
+        const GITHUB_ISSUE_BLOGGER_USERNAME   = process.env.GITHUB_ISSUE_BLOGGER_USERNAME
+        const GITHUB_ISSUE_BLOGGER_REPO_NAME  = process.env.GITHUB_ISSUE_BLOGGER_REPO_NAME
+        if(GITHUB_ISSUE_BLOGGER_USERNAME === undefined || GITHUB_ISSUE_BLOGGER_REPO_NAME === undefined)
+            throw new Error("USERNAME/REPO should not be undefined");
+
         let token = cookieStore.get("access_token")?.value;
+        const github = new Octokit({
+            auth: token
+        })
 
-        const queryOption = {
-            per_page    : PAGE_SIZE,
-            page        : pageIdx,
-            direction   : 'asc'
-        }
-        const qstring = qs.stringify(queryOption,{ arrayFormat: 'comma' });
-        
-        const selectUri = `${GITHUB_LIST_ISSUE_URL}?${qstring}`
-        console.log(selectUri)
-
-        const rtv = await axios.get(selectUri,{
-            headers : {
-                "Accept" : "application/vnd.github+json",
-                "Authorization" : `Bearer ${token}`,
-                "X-GitHub-Api-Version" : "2022-11-28"
-            }
+        const rtv = await github.request('GET /repos/{owner}/{repo}/issues', {
+            owner: GITHUB_ISSUE_BLOGGER_USERNAME,
+            repo: GITHUB_ISSUE_BLOGGER_REPO_NAME,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            },
+            per_page: PAGE_SIZE,
+            page: pageIdx,
+            direction: "asc"
         })
 
         let itemLst:BloggerListItemType[] = [];
@@ -116,10 +153,11 @@ export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType
             itemLst.push({
                 title: item.title,
                 id: item.number,
-                content: item.body
+                create: new Date(item.created_at),
+                update: new Date(item.updated_at),
             } as BloggerListItemType)
         })
-        // console.log(rtv.data)
+        // console.log(rtv.data[0])
         console.log("=========================LIST ISSUES END=========================");
         return itemLst;
     }
@@ -128,18 +166,17 @@ export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType
     }
 }
 
-export const githubVilidateToken = async () => {
+export const githubValidateToken = async () => {
     const cookieStore = cookies();
     if(cookieStore.has("access_token")) {
         let token = cookieStore.get("access_token")?.value;
         // console.log("token: ", token);
         if(token === undefined || token === null)
             return false;
-        let rtv = await axios.get("https://api.github.com/user",{ 
-            headers: {
-                "Authorization" : `Bearer ${token}`,
-            }
+        const github = new Octokit({
+            auth: token
         })
+        let rtv = await github.request('GET /user', {})
         // console.log("Get user test",rtv.status);
         if(rtv.status >= 200 && rtv.status < 300)
             return true;
@@ -151,29 +188,24 @@ export const getGithubToken = async (code: string) => {
     // console.log(req.body.data);
     if(code === undefined)
         return "";
-    // console.log("Get Code",code);
-    // console.log("Get Token invoked");
-    // console.log(req.body);
-    // console.log(res)
-    // console.log("client_id" , process.env.GITHUB_CLIENT_ID)
-    // console.log("client_secret", process.env.GITHUB_CLIENT_SECRET)
-    // console.log("code" , code)
-    const authUrl = "https://github.com/login/oauth/access_token";
-    const queryOption = { 
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code
-    };
-    const qstring = qs.stringify(queryOption);
-    const tokenUrl = `${authUrl}?${qstring}`
-    // console.log(tokenUrl);
-    const {data} = await axios.post(tokenUrl);
-    const authToken = qs.parse(data);
-    let access_token = (authToken as QueryString.ParsedQs)["access_token"];
+
+    const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+    const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
+    if(CLIENT_ID === undefined || CLIENT_SECRET === undefined)
+        throw new Error("ID/SECRET should not be undefined");
+
+    const auth = createOAuthUserAuth({
+        clientId: CLIENT_ID,
+        clientSecret:  CLIENT_SECRET,
+        code: code,
+    });
+    // Exchanges the code for the user access token authentication on first call
+    // and caches the authentication for successive calls
+    const { token: access_token } = await auth();
+
     if(access_token === undefined)
         return "";
-    // console.log(rtv);
-    // return res.send("getToken")
     return access_token
 }
 

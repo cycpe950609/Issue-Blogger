@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { githubLogin, getGithubToken, githubVilidateToken } from "./github";
+import { githubLogin, getGithubToken, githubValidateToken } from "./github";
 import { cookies } from 'next/headers'
 import { getCookiesMgr } from "./utils/cookiesMgr";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ export default function Home() {
             if (cookies.has("access_token")) {
                 //TODO: Check if token is valid
                 console.log(cookies.get("access_token"));
-                let valid = await githubVilidateToken();
+                let valid = await githubValidateToken();
                 return !valid;
                 // router.push("/list");
             }

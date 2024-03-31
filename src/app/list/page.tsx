@@ -4,24 +4,31 @@ import useOnScreen from "../utils/useOnScreen";
 import { githubIsRepoOwner, githubListBlogger } from "../github";
 import Link from "next/link";
 import LinkButton from "../utils/button";
-
-const PAGE_SIZE = 10
+import { useRouter } from "next/navigation";
+import dayjs, { Dayjs } from "dayjs";
+import { LOAD_PAGE_SIZE, TIME_FORMAT } from "../utils/globalParams";
 
 export type BloggerListItemType = {
     title: string;
     id: number;
-    content: string;
+    create: Date;
+    update: Date;
 }
 type BloggerListItemProps = BloggerListItemType & {}
 
 const BloggerListItem = (props: BloggerListItemProps) => {
-    const CONTENT_MAX_SIZE = 8;
-    return <tr className="w-full h-10 lstItem">
+    const router = useRouter()
+    return <tr 
+        className="w-full h-10 lstItem hover:bg-gray-100" 
+        onClick={(e) => {router.push(`/viewer?id=${props.id}`)}}
+    >   
         <th>{props.id}</th>
         <th colSpan={2}>
             <div className="flex flex-col">
                 <span>{props.title}</span>
-                <span className="font-thin text-xs">{props.content.length > CONTENT_MAX_SIZE-3 ? `${props.content.slice(0,CONTENT_MAX_SIZE-3)}...` : props.content}</span>
+                <span className="font-light text-gray-800 text-xs">
+                    {`Create : ${dayjs(props.create).format(TIME_FORMAT)}, Update : ${dayjs(props.update).format(TIME_FORMAT)}`}
+                </span>
             </div>
         </th>
     </tr>
@@ -68,7 +75,7 @@ export default function List() {
         if(isVisible) {
             let updateLst = async () => {
                 let newLstItem = await githubListBlogger(blogIdx);
-                if(newLstItem.length < PAGE_SIZE) {
+                if(newLstItem.length < LOAD_PAGE_SIZE) {
                     setCanLoading(false);
                 }
                 let newBlogLst = [...blogLst,...newLstItem];
@@ -89,7 +96,7 @@ export default function List() {
                 </tr>
             </thead>
             <tbody>
-                {blogLst.map((blog) => <BloggerListItem key={blog.id} title={blog.title} id={blog.id} content={blog.content} />)}
+                {blogLst.map((blog) => <BloggerListItem key={blog.id} {...blog} />)}
                 <tr className="w-full h-10 text-center" ref={refOverflow}>
                     <td colSpan={3}>{canLoading ? "Loading ..." : "No more article."}</td>
                 </tr>
