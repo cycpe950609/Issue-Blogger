@@ -42,3 +42,12 @@ html, body {
 .dialog-body {
     @apply h-auto w-auto p-[15px] pt-[20px] pb-[20px] pointer-events-auto;
 }
+
+
+.markdown-reset ol,ul,li,dl {
+    /* listStyle: "initial", listStyleImage: "none", listStyleType: "disc" */
+    list-style: initial;
+    list-style-type: initial;
+    list-style-image: initial;
+    list-style-position: initial;
+}

@@ -6,6 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react"
 import Markdown from "react-markdown";
 import { twMerge } from "tailwind-merge";
+import "github-markdown-css/github-markdown-light.css"
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkGithub, { defaultBuildUrl } from "remark-github";
 
 export type BloggerPostType = {
     title: string;
@@ -26,6 +31,23 @@ const CommentItem = (props: CommentItemProps) => {
         {props.content}
     </span>
 </div>
+}
+
+type MarkdownViewerPropsType = {
+    children: string;
+}
+const MarkdownViewer = (props: MarkdownViewerPropsType) => {
+    return <div className="markdown-body">
+        <Markdown
+            remarkPlugins={[
+                remarkGfm, 
+                remarkBreaks, 
+                remarkFrontmatter, 
+            ]}
+        >
+            {props.children}
+        </Markdown>
+    </div>
 }
 
 export default function Viewer() {
@@ -75,9 +97,7 @@ export default function Viewer() {
                 </> : null}
             </div>
             <div className="p-2 border-black border-solid border-4 rounded m-1">
-                <Markdown>
-                    {content}
-                </Markdown>
+                <MarkdownViewer>{content}</MarkdownViewer>
             </div>
             <div className="w-full flex flex-col h-fit pt-2">
                 {

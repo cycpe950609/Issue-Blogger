@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Modal from "./utils/modal";
 
 export const metadata: Metadata = {
   title: "Issue-Blogger",
