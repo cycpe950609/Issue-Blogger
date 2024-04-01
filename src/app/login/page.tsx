@@ -17,7 +17,7 @@ export default function LoginPage() {
         let check = async () => {
             if (cookies.has("access_token")) {
                 //TODO: Check if token is valid
-                console.log(cookies.get("access_token"));
+                // console.log(cookies.get("access_token"));
                 let valid = procResponse(await githubValidateToken(), router);
                 return !valid;
                 // router.push("/list");
@@ -57,9 +57,9 @@ export default function LoginPage() {
         check()
         .then((shouldLogin) => {
             if(shouldLogin) {
-                console.log("Should login");
+                // console.log("Should login");
                 setTimeout(() => {
-                    githubLogin()
+                    githubLogin(window.location.href)
                     .then((res: ResponseType) => {
                         procResponse(res, router)
                     })
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 }, 2000)
             }
             else {
-                console.log("Already logged in");
+                // console.log("Already logged in");
                 loginState.setIsLogin(true);
                 githubIsRepoOwner()
                 .then((res) => {
@@ -83,8 +83,8 @@ export default function LoginPage() {
             setCookies("access_token");
             loginState.setIsLogin(false);
             loginState.setIsOwner(false);
-            console.log("githubLogin")
-            githubLogin()
+            // console.log("githubLogin")
+            githubLogin(window.location.href)
             .then((res: ResponseType) => {
                 procResponse(res, router)
             })

@@ -44,9 +44,9 @@ export default function Editor() {
     }, [id, hasID, mode])
 
     const validateForm = () => {
-        console.log("Validate form");
-        console.log(title);
-        console.log(txtContentRef.current?.value.length,content);
+        // console.log("Validate form");
+        // console.log(title);
+        // console.log(txtContentRef.current?.value.length,content);
         const titleLength = txtTitleRef.current?.value.length || 0;
         const bodyLength = contentCounter(txtContentRef.current?.value || "");
         if(bodyLength >= 30 && titleLength > 0) {
@@ -65,7 +65,7 @@ export default function Editor() {
                 githubUpdateIssue(id, title, content)
                 .then((res: ResponseType) => {
                     procResponse(res, router)
-                    console.log("Save Edit Success")
+                    // console.log("Save Edit Success")
                     router.back();
                 })
             }

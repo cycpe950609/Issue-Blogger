@@ -312,7 +312,8 @@ export const getGithubToken = async (code: string) => {
     }
 }
 
-export const githubLogin = async () => {
+export const githubLogin = async (host: string) => {
+    // console.log("Login From ", host)
     try {
         const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
         // console.log(CLIENT_ID);
@@ -323,16 +324,13 @@ export const githubLogin = async () => {
 
         const GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
         const GITHUB_CLIENT_ID = CLIENT_ID;
-        const GITHUB_OAUTH_REDIRECT_URI = process.env.GITHUB_OAUTH_REDIRECT_URI;
-        if(GITHUB_OAUTH_REDIRECT_URI === undefined)
-            throw new Error("OAUTH_REDIRECT_URI_IS_MISSING");
             
         const GITHUB_AUTH_SCOPE = ["user", "repo"];
 
         const queryOption = {
             client_id : GITHUB_CLIENT_ID,
             scope : GITHUB_AUTH_SCOPE,
-            redirect_uri : GITHUB_OAUTH_REDIRECT_URI,
+            redirect_uri : `${host}/login`,
         }
         const qstring = qs.stringify(queryOption,{ arrayFormat: 'comma' });
 

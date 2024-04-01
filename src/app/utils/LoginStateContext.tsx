@@ -23,7 +23,7 @@ export default function LoginStateProvider(props: {children: React.ReactNode}) {
         let check = async () => {
             if (cookies.has("access_token")) {
                 //TODO: Check if token is valid
-                console.log(cookies.get("access_token"));
+                // console.log(cookies.get("access_token"));
                 let valid = procResponse(await githubValidateToken(), router);
                 return valid;
                 // router.push("/list");
@@ -34,7 +34,7 @@ export default function LoginStateProvider(props: {children: React.ReactNode}) {
         check()
         .then((logined) => {
             if(logined) {
-                console.log("Already logged in");
+                // console.log("Already logged in");
                 setIsLogin(true);
                 githubIsRepoOwner()
                 .then((res) => {

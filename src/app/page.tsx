@@ -119,7 +119,7 @@ export default function HomeList() {
             // console.log("Load more at ", blogIdx);
             let updateLst = async () => {
                 let newLstItem = procResponse(await githubListIssue(blogIdx),route);
-                console.log("newLstItem",newLstItem);
+                // console.log("newLstItem",newLstItem);
                 if(newLstItem.length < LOAD_PAGE_SIZE) {
                     setCanLoading(false);
                 }

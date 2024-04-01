@@ -28,7 +28,7 @@ export const getCookiesMgr: ()=>[Map<string,string>, (name:string,value?:string)
                 cur.set(name, value);
             }
             let newCookie = "";
-            console.log("SetCookie", cur);
+            // console.log("SetCookie", cur);
             cur.forEach((value, key) => {
                 if(key !== "SameSite")
                 newCookie += `${key}=${value};`;
