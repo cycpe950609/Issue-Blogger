@@ -3,26 +3,33 @@ import React from "react"
 import qs from "qs";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { BloggerListItemType } from "./list/page";
+import { BloggerListItemType } from "./page";
 import { Octokit } from "@octokit/core";
 import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import { BloggerCommentType, BloggerPostType } from "./@modal/viewer/page";
 import { LOAD_PAGE_SIZE } from "./utils/globalParams";
 
-const getGithubAuth = () => {
+const getGithubAuth = (mustLogin: boolean) => {
     const cookieStore = cookies();
     if(cookieStore.has("access_token")) {
         let token = cookieStore.get("access_token")?.value;
         if(token === undefined || token === null)
-            throw new Error("ACCESSTOKEN is missing");
+            throw new Error("ACCESS_TOKEN_IS_MISSING");
         const github = new Octokit({
             auth: token
         })
         return github;
     }
-    else {
-        throw new Error("AccessToken is not found");
+    else if(mustLogin) {
+        throw new Error("ACCESS_TOKEN_IS_MISSING");
     }
+    const GITHUB_UNAUTHENTICATED_TOKEN = process.env.GITHUB_UNAUTHENTICATED_TOKEN;
+    if(GITHUB_UNAUTHENTICATED_TOKEN === undefined || GITHUB_UNAUTHENTICATED_TOKEN === null)
+        return new Octokit({})
+    console.log("Requests using Fine-grained personal access tokens.")
+    return new Octokit({
+        auth: GITHUB_UNAUTHENTICATED_TOKEN
+    })
 }
 
 const getGithubRepo = () => {
@@ -44,7 +51,7 @@ const validateContent = (content: string) => {
 }
 
 export const githubUpdateIssue = async (id: number, title: string, content: string) => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(true);
     const [username, repo] = getGithubRepo();
 
     validateTitle(title);
@@ -66,7 +73,7 @@ export const githubUpdateIssue = async (id: number, title: string, content: stri
 }
 
 export const githubDeleteIssue = async (id: number) => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(true);
     const [username, repo] = getGithubRepo();
 
     const rtv = await client.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
@@ -84,7 +91,7 @@ export const githubDeleteIssue = async (id: number) => {
 }
 
 export const githubViewIssue = async (id: number) => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(false);
     const [username, repo] = getGithubRepo();
     
     console.log("===========================LIST ISSUE============================");
@@ -112,7 +119,7 @@ export const githubViewIssue = async (id: number) => {
 }
 
 export const githubViewIssueComments = async (id: number) => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(false);
     const [username, repo] = getGithubRepo();
     
     console.log("===========================LIST ISSUE COMMENT==========================");
@@ -138,7 +145,7 @@ export const githubViewIssueComments = async (id: number) => {
 }
 
 export const githubCreateIssue = async (title: string, content: string) => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(true);
     const [username, repo] = getGithubRepo();
 
     validateTitle(title);
@@ -156,7 +163,7 @@ export const githubCreateIssue = async (title: string, content: string) => {
 }
 
 export const githubIsRepoOwner = async () => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(true);
     const [username, repo] = getGithubRepo();
 
     const rtvUser = await client.request('GET /user', {
@@ -183,8 +190,8 @@ export const githubIsRepoOwner = async () => {
     return userID === repoOwnerID;
 }
 
-export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType[]> = async (pageIdx: number) => {
-    const client = getGithubAuth();
+export const githubListIssue: (pageIdx: number) => Promise<BloggerListItemType[]> = async (pageIdx: number) => {
+    const client = getGithubAuth(false);
     const [username, repo] = getGithubRepo();
     
     console.log("===========================LIST ISSUES===========================");
@@ -214,7 +221,7 @@ export const githubListBlogger: (pageIdx: number) => Promise<BloggerListItemType
 }
 
 export const githubValidateToken = async () => {
-    const client = getGithubAuth();
+    const client = getGithubAuth(true);
     let rtv = await client.request('GET /user', {})
         // console.log("Get user test",rtv.status);
         if(rtv.status >= 200 && rtv.status < 300)

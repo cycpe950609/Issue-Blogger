@@ -1,5 +1,5 @@
 "use client"
-import { githubDeleteIssue, githubIsRepoOwner, githubViewIssue, githubViewIssueComments } from "@/app/github";
+import { githubDeleteIssue, githubIsRepoOwner, githubValidateToken, githubViewIssue, githubViewIssueComments } from "@/app/github";
 import LinkButton, { BUTTON_CSS_CLASS } from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,6 +10,8 @@ import "github-markdown-css/github-markdown-light.css"
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import remarkFrontmatter from "remark-frontmatter";
+import { getCookiesMgr } from "@/app/utils/cookiesMgr";
+import RepoOwnerComponent from "@/app/utils/RepoOwnerComp";
 
 export type BloggerPostType = {
     title: string;
@@ -87,15 +89,6 @@ export default function Viewer() {
         loadPost();
     },[id])
     
-    const [repoOwner, setRepoOwner] = useState(false);
-    useEffect(() => {
-        let updateRepoOwner = async () => {
-            const isOwner = await githubIsRepoOwner();
-            setRepoOwner(isOwner);
-        };
-        updateRepoOwner();
-    },[])
-    
     const [isDelete, setIsDelete] = useState(false);
 
     return <Modal title="Viewer">
@@ -103,10 +96,16 @@ export default function Viewer() {
             <div className="flex flex-row py-2">
                 <span className="text-nowrap justify-center align-middle">Title : </span>
                 <span className="text-nowrap flex-grow pl-2">{title}</span>
-                {repoOwner ? <>
-                    <button className={twMerge(BUTTON_CSS_CLASS,"px-4 bg-red-500 border-red-900")} onClick={() => setIsDelete(true)}>Delete</button>
-                    <LinkButton className="px-4" href={`/editor?mode=edit&id=${id}`}>Edit</LinkButton>
-                </> : null}
+                <RepoOwnerComponent 
+                    isOwner={
+                        <>
+                            <button className={twMerge(BUTTON_CSS_CLASS,"px-4 bg-red-500 border-red-900")} onClick={() => setIsDelete(true)}>Delete</button>
+                            <LinkButton className="px-4" href={`/editor?mode=edit&id=${id}`}>Edit</LinkButton>
+                        </>
+                    } 
+                    isGuest={null} 
+                    notLogin={null} 
+                />
             </div>
             <div className="p-2 border-black border-solid border-4 rounded m-1">
                 <MarkdownViewer>{content}</MarkdownViewer>
@@ -120,32 +119,35 @@ export default function Viewer() {
                 }
                 <span className="w-full h-10 text-center text-gray-700">No more comment here.</span>
             </div>
-            {isDelete && repoOwner ? <div className="absolute top-0 left-0 w-full h-full">
-                <Modal title={`Do you want to delete post ${id} ?`} onClose={() => setIsDelete(false)}>
-                    <div className="w-full h-full flex flex-row">
-                        <button 
-                            className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
-                            onClick={() => {
-                                const deletePost = async () => {
-                                    return await githubDeleteIssue(id);
-                                }
-                                deletePost().then(() => { 
-                                    setIsDelete(false);
-                                    router.back(); 
-                                    router.refresh();
-                                });
-                            }}
-                        >
-                            Delete
-                        </button>
-                        <button 
-                            className={twMerge(BUTTON_CSS_CLASS, "flex-grow")} 
-                            onClick={()=> setIsDelete(false)}>
-                                Cancel
-                        </button>
-                    </div>
-                </Modal>
-            </div> : null}
+            {
+                isDelete && <RepoOwnerComponent isOwner={
+                <div className="absolute top-0 left-0 w-full h-full">
+                    <Modal title={`Do you want to delete post ${id} ?`} onClose={() => setIsDelete(false)}>
+                        <div className="w-full h-full flex flex-row">
+                            <button 
+                                className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
+                                onClick={() => {
+                                    const deletePost = async () => {
+                                        return await githubDeleteIssue(id);
+                                    }
+                                    deletePost().then(() => { 
+                                        setIsDelete(false);
+                                        router.back(); 
+                                        router.refresh();
+                                    });
+                                }}
+                            >
+                                Delete
+                            </button>
+                            <button 
+                                className={twMerge(BUTTON_CSS_CLASS, "flex-grow")} 
+                                onClick={()=> setIsDelete(false)}>
+                                    Cancel
+                            </button>
+                        </div>
+                    </Modal>
+                </div>
+                } isGuest={<></>} notLogin={<></>} />}
         </div>
 
     </Modal>
