@@ -23,7 +23,7 @@ type BloggerListItemProps = BloggerListItemType & {}
 const BloggerListItem = (props: BloggerListItemProps) => {
     const router = useRouter()
     return <tr 
-        className="w-full h-10 lstItem hover:bg-gray-100" 
+        className="w-full h-10 lstItem hover:bg-gray-100 cursor-pointer select-none" 
         onClick={(e) => {router.push(`/viewer?id=${props.id}`)}}
     >   
         <th>{props.id}</th>
@@ -77,7 +77,7 @@ export default function HomeList() {
     const [canLoading, setCanLoading] = useState(true);
 
     const refScroll = useRef<HTMLDivElement>(null)
-    const refWindowSize = useRef<HTMLDivElement>(null)
+    // const refWindowSize = useRef<HTMLDivElement>(null)
     const refOverflow = useRef<HTMLTableRowElement>(null)
 
     const [isVisible, setIsVisible] = useState(false);
@@ -85,7 +85,7 @@ export default function HomeList() {
     const isLoadingVisible = () => {
         let refLoading = refOverflow.current;
         if(refLoading === null) return false;
-        let refWindow = refWindowSize.current;
+        let refWindow = refScroll.current;
         if(refWindow === null) return false;
     
         const xLoading = refLoading.getBoundingClientRect().top;
@@ -156,6 +156,6 @@ export default function HomeList() {
                 </tr>
             </tbody>
         </table>
-        <div ref={refWindowSize} className="w-full h-full pointer-events-none fixed top-0 left-0"></div>
+        {/* <div ref={refWindowSize} className="w-full h-full pointer-events-none fixed top-0 left-0"></div> */}
     </div>
 }

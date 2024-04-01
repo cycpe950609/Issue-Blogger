@@ -71,7 +71,7 @@ export default function Home() {
             }
         })
     })
-    return <>
-        <div className="flex">Login in <span className="text-red-600">2 secs</span></div>
-    </>
+    return <div className="h-full w-full flex flex-col items-center justify-center">
+        <div className="flex">Login in<span className="text-red-600 ml-2">2 secs</span></div>
+    </div>
 }
