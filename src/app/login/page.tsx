@@ -59,7 +59,7 @@ export default function LoginPage() {
             if(shouldLogin) {
                 // console.log("Should login");
                 setTimeout(() => {
-                    githubLogin(window.location.href)
+                    githubLogin()
                     .then((res: ResponseType) => {
                         procResponse(res, router)
                     })
@@ -84,7 +84,7 @@ export default function LoginPage() {
             loginState.setIsLogin(false);
             loginState.setIsOwner(false);
             // console.log("githubLogin")
-            githubLogin(window.location.href)
+            githubLogin()
             .then((res: ResponseType) => {
                 procResponse(res, router)
             })

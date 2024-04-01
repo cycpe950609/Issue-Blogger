@@ -312,8 +312,7 @@ export const getGithubToken = async (code: string) => {
     }
 }
 
-export const githubLogin = async (host: string) => {
-    // console.log("Login From ", host)
+export const githubLogin = async () => {
     try {
         const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
         // console.log(CLIENT_ID);
@@ -330,7 +329,6 @@ export const githubLogin = async (host: string) => {
         const queryOption = {
             client_id : GITHUB_CLIENT_ID,
             scope : GITHUB_AUTH_SCOPE,
-            redirect_uri : `${host}/login`,
         }
         const qstring = qs.stringify(queryOption,{ arrayFormat: 'comma' });
 
