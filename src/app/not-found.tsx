@@ -8,10 +8,10 @@ export default function NotFound() {
     useEffect(() =>{
         setTimeout(() => {
             router.push('/')
-        },5000)
+        },2000)
     })
     return <div className="h-full w-full flex flex-col items-center justify-center">
         <span>Page <span className="text-red-500 font-bold">{pathName.substring(1)}</span> Not Found</span>
-        <span>Jump back to home in <span className="text-red-500">5 secs</span></span>
+        <span>Jump back to home in <span className="text-red-500">2 secs</span></span>
     </div>
 }

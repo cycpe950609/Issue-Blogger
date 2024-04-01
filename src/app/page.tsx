@@ -1,16 +1,15 @@
 "use client"
 import { useContext, useEffect, useRef, useState } from "react"
-import useOnScreen from "./utils/useOnScreen";
-import { githubIsRepoOwner, githubListIssue, githubValidateToken } from "./github";
-import Link from "next/link";
+import { githubListIssue } from "./utils/github";
 import LinkButton, { BUTTON_CSS_CLASS } from "./utils/button";
 import { useRouter } from "next/navigation";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { LOAD_PAGE_SIZE, TIME_FORMAT } from "./utils/globalParams";
 import { getCookiesMgr } from "./utils/cookiesMgr";
 import RepoOwnerComponent from "./utils/RepoOwnerComp";
 import { twMerge } from "tailwind-merge";
 import { LoginStateContext } from "./utils/LoginStateContext";
+import { procResponse } from "./utils/errorHandlerClient";
 
 export type BloggerListItemType = {
     title: string;
@@ -72,6 +71,8 @@ const BtnLogout = () => {
 }
 
 export default function HomeList() {
+    const route = useRouter(); 
+
     const [blogLst, setBlogLst] = useState([] as BloggerListItemType[]);
     const [blogIdx, setBlogIdx] = useState(1);
     const [canLoading, setCanLoading] = useState(true);
@@ -117,7 +118,8 @@ export default function HomeList() {
         if(checkVisible && canLoading) {
             // console.log("Load more at ", blogIdx);
             let updateLst = async () => {
-                let newLstItem = await githubListIssue(blogIdx);
+                let newLstItem = procResponse(await githubListIssue(blogIdx),route);
+                console.log("newLstItem",newLstItem);
                 if(newLstItem.length < LOAD_PAGE_SIZE) {
                     setCanLoading(false);
                 }

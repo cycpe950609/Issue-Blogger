@@ -1,8 +1,10 @@
 "use client"
-import { githubCreateIssue, githubUpdateIssue, githubViewIssue } from "@/app/github";
+import { githubCreateIssue, githubUpdateIssue, githubViewIssue } from "@/app/utils/github";
+import { procResponse } from "@/app/utils/errorHandlerClient";
 import Modal from "@/app/utils/modal"
 import { useSearchParams, useRouter } from "next/navigation"
 import React, { useEffect, useRef, useState } from "react"
+import { ResponseType } from "@/app/utils/errorHandlerServer";
 
 export default function Editor() {
     const router = useRouter()
@@ -32,7 +34,7 @@ export default function Editor() {
     useEffect(() => {
         if(mode === "edit" && hasID) {
             let loadPost = async () => {
-                let post = await githubViewIssue(id);
+                let post = procResponse(await githubViewIssue(id), router);
                 setTitle(post.title);
                 setContent(post.content);
                 setContentCount(contentCounter(post.content))
@@ -54,13 +56,15 @@ export default function Editor() {
             const content = txtContentRef.current!.value;
             if(mode === "create") {
                 githubCreateIssue(title, content)
-                .then(() => {
+                .then((res: ResponseType) => {
+                    procResponse(res, router)
                     router.back();
                     router.refresh();
                 })
             } else if(mode === "edit") {
                 githubUpdateIssue(id, title, content)
-                .then(() => {
+                .then((res: ResponseType) => {
+                    procResponse(res, router)
                     console.log("Save Edit Success")
                     router.back();
                 })

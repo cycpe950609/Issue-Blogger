@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import React from "react";
+import React, { Suspense } from "react";
 import LoginStateContext from "./utils/LoginStateContext";
 import LoginStateProvider from "./utils/LoginStateContext";
 
@@ -13,9 +13,13 @@ type LayerProps = {
   children: React.ReactNode;
 }
 const Layer = (props: LayerProps) => {
-  return <div className="fixed left-0 top-0 w-full h-full pointer-events-none">
-    {props.children}
-  </div>;
+  return <>
+    {/* <Suspense> */}
+      <div className="fixed left-0 top-0 w-full h-full pointer-events-none">
+        {props.children}
+      </div>
+    {/* </Suspense> */}
+  </>
 }
 
 export default function RootLayout({

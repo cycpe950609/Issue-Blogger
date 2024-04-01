@@ -1,6 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
-import { getCookiesMgr } from "./cookiesMgr";
-import { githubIsRepoOwner, githubValidateToken } from "../github";
+import React, { useContext } from "react";
 import {LoginStateContext} from "./LoginStateContext";
 
 export type RepoOwnerComponentPropsType = {

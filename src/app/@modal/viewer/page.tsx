@@ -1,5 +1,5 @@
 "use client"
-import { githubDeleteIssue, githubIsRepoOwner, githubValidateToken, githubViewIssue, githubViewIssueComments } from "@/app/github";
+import { githubDeleteIssue, githubViewIssue, githubViewIssueComments } from "@/app/utils/github";
 import LinkButton, { BUTTON_CSS_CLASS } from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +12,7 @@ import remarkBreaks from "remark-breaks";
 import remarkFrontmatter from "remark-frontmatter";
 import { getCookiesMgr } from "@/app/utils/cookiesMgr";
 import RepoOwnerComponent from "@/app/utils/RepoOwnerComp";
+import { procResponse } from "@/app/utils/errorHandlerClient";
 
 export type BloggerPostType = {
     title: string;
@@ -68,10 +69,10 @@ export default function Viewer() {
     useEffect(() => {
         const loadPost = async () => {
             try {
-                let post = await githubViewIssue(id);
+                let post = procResponse(await githubViewIssue(id), router);
                 setTitle(post.title);
                 setContent(post.content);
-                let postComments = await githubViewIssueComments(id);
+                let postComments = procResponse(await githubViewIssueComments(id), router);
                 setComments(postComments);
             }
             catch (e: any) {
@@ -128,7 +129,7 @@ export default function Viewer() {
                                 className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
                                 onClick={() => {
                                     const deletePost = async () => {
-                                        return await githubDeleteIssue(id);
+                                        return procResponse(await githubDeleteIssue(id), router);
                                     }
                                     deletePost().then(() => { 
                                         setIsDelete(false);
