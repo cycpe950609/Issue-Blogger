@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import React from "react";
+import LoginStateContext from "./utils/LoginStateContext";
+import LoginStateProvider from "./utils/LoginStateContext";
 
 export const metadata: Metadata = {
   title: "Issue-Blogger",
@@ -22,11 +25,15 @@ export default function RootLayout({
   modal: React.ReactNode;
   children: React.ReactNode;
 }>) {
+
+
   return (
     <html lang="en">
       <body className="w-full h-full">
-        <Layer><div className="w-full h-full pointer-events-auto">{children}</div></Layer>
-        <Layer>{modal}</Layer>
+        <LoginStateProvider>
+          <Layer><div className="w-full h-full pointer-events-auto">{children}</div></Layer>
+          <Layer>{modal}</Layer>
+        </LoginStateProvider>
       </body>
     </html>
   );

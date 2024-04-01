@@ -10,19 +10,33 @@ const parseCurrentCookies = () => {
     return result;
 }
 
-export const getCookiesMgr: ()=>[Map<string,string>, (name:string,value:string)=> void] = () => {
+export const getCookiesMgr: ()=>[Map<string,string>, (name:string,value?:string)=> void] = () => {
     let result = parseCurrentCookies();
     return [
         result,
-        (name: string, value: string) => {
+        (name: string, value?: string) => {
             let cur = parseCurrentCookies();
-            cur.set(name, value);
+            if(value === undefined){
+                cur.delete(name);
+                const date = new Date();
+                // Set it expire in -1 days
+                date.setTime(date.getTime() + (-1 * 24 * 60 * 60 * 1000));
+                // Set it
+                document.cookie = name+"=; expires="+date.toUTCString()+"; path=/";
+            }
+            else {
+                cur.set(name, value);
+            }
             let newCookie = "";
+            console.log("SetCookie", cur);
             cur.forEach((value, key) => {
+                if(key !== "SameSite")
                 newCookie += `${key}=${value};`;
             });
-            newCookie += " SameSite=Strict; Secure"
-            document.cookie = newCookie;
+            if(newCookie.length > 0){
+                newCookie += "path=/; SameSite=Strict; Secure";
+                document.cookie = newCookie;
+            }
         }
     ];
 }

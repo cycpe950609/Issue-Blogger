@@ -1,16 +1,18 @@
 "use client"
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { githubLogin, getGithubToken, githubValidateToken } from "../github";
+import { useContext, useEffect, useState } from "react";
+import { githubLogin, getGithubToken, githubValidateToken, githubIsRepoOwner } from "../github";
 import { cookies } from 'next/headers'
 import { getCookiesMgr } from "../utils/cookiesMgr";
 import { useRouter } from "next/navigation";
 import QueryString from "qs";
+import { LoginStateContext } from "../utils/LoginStateContext";
 
 export default function Home() {
     const router = useRouter();
     const params = useSearchParams();
+    const loginState = useContext(LoginStateContext);
     useEffect(() => {
         const [cookies, setCookies] = getCookiesMgr();
         let check = async () => {
@@ -60,7 +62,12 @@ export default function Home() {
             }
             else {
                 console.log("Already logged in");
-                router.push("/");
+                loginState.setIsLogin(true);
+                githubIsRepoOwner()
+                .then((isOwner) => {
+                    loginState.setIsOwner(isOwner);
+                    router.push("/");
+                })
             }
         })
     })

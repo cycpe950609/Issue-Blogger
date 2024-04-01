@@ -1,37 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { getCookiesMgr } from "./cookiesMgr";
 import { githubIsRepoOwner, githubValidateToken } from "../github";
+import {LoginStateContext} from "./LoginStateContext";
 
 export type RepoOwnerComponentPropsType = {
     isOwner: React.ReactNode;
     isGuest: React.ReactNode;
     notLogin: React.ReactNode;
 }
+
+const HorCNT = (props: {children: React.ReactNode}) => {
+    return <div className="flex flex-row">{props.children}</div>
+}
 export default function RepoOwnerComponent(props: RepoOwnerComponentPropsType) {
+    const loginState = useContext(LoginStateContext);
 
-    const [repoOwner, setRepoOwner] = useState(false);
-    const [isLogin, setIsLogin] = useState(false);
-
-    useEffect(() => {
-        let updateLoginState = async () => {
-            const [cookies, setCookies] = getCookiesMgr();
-            const logined = cookies.has("access_token") && await githubValidateToken();
-            if(logined) {
-                const isOwner = await githubIsRepoOwner();
-                setRepoOwner(isOwner);
-            } 
-            else {
-                setRepoOwner(false);
-            }
-            setIsLogin(logined);
-        };
-        updateLoginState();
-    },[])
-
-    if(isLogin) {
-        return repoOwner ? props.isOwner : props.isGuest;
+    if(loginState.isLogin) {
+        return loginState.isOwner ? <HorCNT>{props.isOwner}</HorCNT> : <HorCNT>{props.isGuest}</HorCNT> ;
     }
     else {
-        return props.notLogin;
+        return <HorCNT>{props.notLogin}</HorCNT>;
     }
 }

@@ -1,14 +1,16 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import useOnScreen from "./utils/useOnScreen";
 import { githubIsRepoOwner, githubListIssue, githubValidateToken } from "./github";
 import Link from "next/link";
-import LinkButton from "./utils/button";
+import LinkButton, { BUTTON_CSS_CLASS } from "./utils/button";
 import { useRouter } from "next/navigation";
 import dayjs, { Dayjs } from "dayjs";
 import { LOAD_PAGE_SIZE, TIME_FORMAT } from "./utils/globalParams";
 import { getCookiesMgr } from "./utils/cookiesMgr";
 import RepoOwnerComponent from "./utils/RepoOwnerComp";
+import { twMerge } from "tailwind-merge";
+import { LoginStateContext } from "./utils/LoginStateContext";
 
 export type BloggerListItemType = {
     title: string;
@@ -55,6 +57,19 @@ const testBlogLst = [
     {title: "Test16", id:15},
 ]
 
+const BtnLogout = () => {
+    const router = useRouter();
+    const loginState = useContext(LoginStateContext);
+    return <button className={twMerge(BUTTON_CSS_CLASS, "bg-amber-500 border-amber-900")}
+        onClick={() => {
+            const [cookies, setCookies] = getCookiesMgr();
+            setCookies("access_token");
+            loginState.setIsLogin(false);
+            loginState.setIsOwner(false);
+            router.push("/");
+        }}
+    >Logout</button>
+}
 
 export default function HomeList() {
     const [blogLst, setBlogLst] = useState([] as BloggerListItemType[]);
@@ -122,8 +137,13 @@ export default function HomeList() {
                     <th>Title</th>
                     <th className="w-24">
                         <RepoOwnerComponent 
-                            isOwner={<LinkButton href="/editor?mode=create">Create</LinkButton>} 
-                            isGuest={<></>} 
+                            isOwner={<>
+                                <BtnLogout/>
+                                <LinkButton href="/editor?mode=create">Create</LinkButton>
+                            </>} 
+                            isGuest={<>
+                                <BtnLogout/>
+                            </>} 
                             notLogin={<LinkButton className="bg-blue-500 border-blue-900" href="/login">Login</LinkButton>}
                         />
                     </th>
