@@ -1,9 +1,9 @@
 "use client"
-import { githubDeleteIssue, githubViewIssue, githubViewIssueComments } from "@/app/utils/github";
+import { githubViewIssue, githubViewIssueComments } from "@/app/utils/github";
 import LinkButton, { BUTTON_CSS_CLASS } from "@/app/utils/button";
 import Modal from "@/app/utils/modal"
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Markdown from "react-markdown";
 import { twMerge } from "tailwind-merge";
 import "github-markdown-css/github-markdown-light.css"
@@ -13,6 +13,7 @@ import remarkFrontmatter from "remark-frontmatter";
 import { getCookiesMgr } from "@/app/utils/cookiesMgr";
 import RepoOwnerComponent from "@/app/utils/RepoOwnerComp";
 import { procResponse } from "@/app/utils/errorHandlerClient";
+import { BloggerListContext } from "@/app/utils/BloggerListContext";
 
 export type BloggerPostType = {
     title: string;
@@ -92,6 +93,8 @@ export default function Viewer() {
     
     const [isDelete, setIsDelete] = useState(false);
 
+    const blogState = useContext(BloggerListContext);
+
     return <Modal title="Viewer">
         <div className="w-[80vw] h-[65vh] overflow-y-auto overflow-x-clip relative float">
             <div className="flex flex-row py-2">
@@ -129,12 +132,14 @@ export default function Viewer() {
                                 className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
                                 onClick={() => {
                                     const deletePost = async () => {
-                                        return procResponse(await githubDeleteIssue(id), router);
+                                        return blogState.deletePost(id);
                                     }
-                                    deletePost().then(() => { 
-                                        setIsDelete(false);
-                                        router.back(); 
-                                        router.refresh();
+                                    deletePost().then((success: boolean) => { 
+                                        if(success) {
+                                            setIsDelete(false);
+                                            router.back(); 
+                                            router.refresh();
+                                        }
                                     });
                                 }}
                             >

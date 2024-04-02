@@ -3,6 +3,7 @@ import "./globals.css";
 import React, { Suspense } from "react";
 import LoginStateContext from "./utils/LoginStateContext";
 import LoginStateProvider from "./utils/LoginStateContext";
+import BloggerListProvider from "./utils/BloggerListContext";
 
 export const metadata: Metadata = {
   title: "Issue-Blogger",
@@ -35,8 +36,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="w-full h-full">
         <LoginStateProvider>
-          <Layer><div className="w-full h-full pointer-events-auto">{children}</div></Layer>
-          <Layer>{modal}</Layer>
+          <BloggerListProvider>
+            <Layer><div className="w-full h-full pointer-events-auto">{children}</div></Layer>
+            <Layer>{modal}</Layer>
+          </BloggerListProvider>
         </LoginStateProvider>
       </body>
     </html>

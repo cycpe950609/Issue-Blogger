@@ -3,12 +3,12 @@ import React from "react"
 import qs from "qs";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { BloggerListItemType } from "../page";
 import { Octokit } from "@octokit/core";
 import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import { BloggerCommentType, BloggerPostType } from "../@modal/viewer/page";
 import { LOAD_PAGE_SIZE } from "./globalParams";
 import { badRequestResponse, processCommentError, redirectResponse, serverErrorResponse, successResponse } from "./errorHandlerServer";
+import { BloggerListItemType } from "./BloggerListContext";
 
 const getNonLoginGithubAuth = () => {
     const GITHUB_UNAUTHENTICATED_TOKEN = process.env.GITHUB_UNAUTHENTICATED_TOKEN;
@@ -129,7 +129,7 @@ export const githubViewIssue = async (id: number) => {
 
         let post: BloggerPostType = {
             title: rtv.data.title,
-            id: rtv.data.id,
+            id: rtv.data.number,
             content: rtv.data.body || ""
         }
         
@@ -190,8 +190,15 @@ export const githubCreateIssue = async (title: string, content: string) => {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         })
-        if(rtv.status >= 200 && rtv.status < 300)
-            return successResponse();
+        console.log("Create Post", rtv.data)
+        if(rtv.status >= 200 && rtv.status < 300){
+            let post: BloggerPostType = {
+                title: rtv.data.title,
+                id: rtv.data.number,
+                content: rtv.data.body || ""
+            }
+            return successResponse(post);
+        }
         return serverErrorResponse();
     }
     catch (e: any) {

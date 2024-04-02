@@ -7,7 +7,7 @@ export const procResponse = (res: ResponseType, route: AppRouterInstance) => {
     // console.log("ProcResponse : ", res)
     switch(res.status) {
         case 200:
-            return res.data;
+            return res.data || true;
         case 303: {
             const routeType = res.message;
             // console.log("Url ", routeType);

@@ -1,10 +1,11 @@
 "use client"
-import { githubCreateIssue, githubUpdateIssue, githubViewIssue } from "@/app/utils/github";
+import { githubViewIssue } from "@/app/utils/github";
 import { procResponse } from "@/app/utils/errorHandlerClient";
 import Modal from "@/app/utils/modal"
 import { useSearchParams, useRouter } from "next/navigation"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { ResponseType } from "@/app/utils/errorHandlerServer";
+import { BloggerListContext } from "@/app/utils/BloggerListContext";
 
 export default function Editor() {
     const router = useRouter()
@@ -43,6 +44,8 @@ export default function Editor() {
         }
     }, [id, hasID, mode])
 
+    const blogState = useContext(BloggerListContext);
+
     const validateForm = () => {
         // console.log("Validate form");
         // console.log(title);
@@ -55,18 +58,20 @@ export default function Editor() {
             const title = txtTitleRef.current!.value;
             const content = txtContentRef.current!.value;
             if(mode === "create") {
-                githubCreateIssue(title, content)
-                .then((res: ResponseType) => {
-                    procResponse(res, router)
-                    router.back();
-                    router.refresh();
+                blogState.createPost(title, content)
+                .then((success: boolean) => {
+                    if(success) {
+                        router.back();
+                        // router.refresh();
+                    }
                 })
             } else if(mode === "edit") {
-                githubUpdateIssue(id, title, content)
-                .then((res: ResponseType) => {
-                    procResponse(res, router)
-                    // console.log("Save Edit Success")
-                    router.back();
+                blogState.updatePost(id, title, content)
+                .then((success: boolean) => {
+                    if(success) {
+                        // console.log("Save Edit Success")
+                        router.back();
+                    }
                 })
             }
         }
