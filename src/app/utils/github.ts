@@ -190,7 +190,7 @@ export const githubCreateIssue = async (title: string, content: string) => {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         })
-        console.log("Create Post", rtv.data)
+        // console.log("Create Post", rtv.data)
         if(rtv.status >= 200 && rtv.status < 300){
             let post: BloggerPostType = {
                 title: rtv.data.title,

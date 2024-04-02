@@ -34,7 +34,7 @@ export default function BloggerListProvider(props: {children: React.ReactNode}) 
     const [canLoading, setCanLoading] = useState(true);
 
     const loadNextPage = async () => {
-        console.log("loadNextPage", lastLoadedBlogIdx)
+        // console.log("loadNextPage", lastLoadedBlogIdx)
         if(canLoading) {
             let newLstItem = procResponse(await githubListIssue(lastLoadedBlogIdx),router);
             // console.log("newLstItem",newLstItem);
@@ -59,10 +59,10 @@ export default function BloggerListProvider(props: {children: React.ReactNode}) 
     const flattenBlogList = () => {
         let rtv = [] as BloggerListItemType[];
         Object.values(blogList).forEach((lst:BloggerListItemType[]) => {
-            console.log("lst",lst);
+            // console.log("lst",lst);
             rtv = rtv.concat(lst);
         });
-        console.log("flattenBlogList", rtv);
+        // console.log("flattenBlogList", rtv);
         return rtv;
     }
 

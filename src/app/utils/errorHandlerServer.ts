@@ -42,6 +42,7 @@ export const serverErrorResponse = () => {
 
 export const processCommentError = (e: any) => {
     const GITHUB_OAUTH_REDIRECT_URI = process.env.GITHUB_OAUTH_REDIRECT_URI;
+    console.error("Error", e.message);
     if(GITHUB_OAUTH_REDIRECT_URI === undefined)
         return serverErrorResponse();
     if(e.message === "ACCESS_TOKEN_IS_MISSING")

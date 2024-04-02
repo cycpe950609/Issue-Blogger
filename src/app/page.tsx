@@ -9,6 +9,7 @@ import RepoOwnerComponent from "./utils/RepoOwnerComp";
 import { twMerge } from "tailwind-merge";
 import { LoginStateContext } from "./utils/LoginStateContext";
 import { BloggerListContext, BloggerListItemType } from "./utils/BloggerListContext";
+import Spinner from "./utils/Spinner";
 
 
 
@@ -120,7 +121,14 @@ export default function HomeList() {
             <tbody>
                 {blogState.blogList().map( blog =>  <BloggerListItem key={blog.id} {...blog} /> )}
                 <tr className="w-full h-10 text-center" ref={refOverflow}>
-                    <td colSpan={3}>{blogState.canLoading ? "Loading ..." : "No more article."}</td>
+                    <td colSpan={3}>{
+                        blogState.canLoading ? 
+                            <div className="w-full h-fit flex flex-row justify-center">
+                                <div className="h-8 w-fit"><Spinner>Loading...</Spinner> </div>
+                            </div>
+                        : 
+                            "No more article."
+                    }</td>
                 </tr>
             </tbody>
         </table>

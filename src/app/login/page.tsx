@@ -1,6 +1,6 @@
 "use client"
 import { useSearchParams } from "next/navigation";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { githubLogin, getGithubToken, githubValidateToken, githubIsRepoOwner } from "@/app/utils/github";
 import { getCookiesMgr } from "../utils/cookiesMgr";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,23 @@ export default function LoginPage() {
     const router = useRouter();
     const params = useSearchParams();
     const loginState = useContext(LoginStateContext);
+
+    const [time, setTime] = useState(2)
+    useEffect(() => {
+        if(!loginState.isLogin)
+            var timeout = setInterval(()=>{
+                if(time > 0)
+                    setTime(time - 1)
+                if(time === 0)
+                    clearInterval(timeout)
+                // window.location.reload()
+            },1000)
+        return () => {
+            if(!loginState.isLogin)
+                clearInterval(timeout)
+        }
+    })
+
     useEffect(() => {
         const [cookies, setCookies] = getCookiesMgr();
         let check = async () => {
@@ -91,6 +108,14 @@ export default function LoginPage() {
         })
     })
     return <div className="h-full w-full flex flex-col items-center justify-center">
-                <div className="flex">Login in<span className="text-red-600 ml-2">2 secs</span></div>
+                {
+                    loginState.isLogin ? 
+                    <div className="flex flex-col">
+                        <span>Login Sucess</span>
+                        <span className="text-green-600">Wait a moment</span>
+                    </div>
+                    :
+                    <div className="flex">Login in<span className="text-red-600 ml-2">{time} secs</span></div>
+                }
             </div>
 }

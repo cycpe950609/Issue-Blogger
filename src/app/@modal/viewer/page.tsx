@@ -58,19 +58,22 @@ export default function Viewer() {
     const router = useRouter();
 
     const params = useSearchParams();
-    if(!params.has("id"))
-        throw new Error("No id in the url.");
-    const id = parseInt(params.get("id")!);
-
+    
     const [title, setTitle] = useState("Title");
     const [content, setContent] = useState("");
     const [comments, setComments] = useState([] as BloggerCommentType[]);
+    const [isDelete, setIsDelete] = useState(false);
+    const blogState = useContext(BloggerListContext);
+    const [postID, setPostID] = useState(0);
 
-    
     useEffect(() => {
         const loadPost = async () => {
             try {
+                if(!params.has("id"))
+                    throw new Error("No id in the url.");
+                const id = parseInt(params.get("id")!);
                 let post = procResponse(await githubViewIssue(id), router);
+                setPostID(post.id);
                 setTitle(post.title);
                 setContent(post.content);
                 let postComments = procResponse(await githubViewIssueComments(id), router);
@@ -89,11 +92,8 @@ export default function Viewer() {
             }
         }
         loadPost();
-    },[id])
+    },[])
     
-    const [isDelete, setIsDelete] = useState(false);
-
-    const blogState = useContext(BloggerListContext);
 
     return <Modal title="Viewer">
         <div className="w-[80vw] h-[65vh] overflow-y-auto overflow-x-clip relative float">
@@ -104,7 +104,7 @@ export default function Viewer() {
                     isOwner={
                         <>
                             <button className={twMerge(BUTTON_CSS_CLASS,"px-4 bg-red-500 border-red-900")} onClick={() => setIsDelete(true)}>Delete</button>
-                            <LinkButton className="px-4" href={`/editor?mode=edit&id=${id}`}>Edit</LinkButton>
+                            <LinkButton className="px-4" href={`/editor?mode=edit&id=${postID}`}>Edit</LinkButton>
                         </>
                     } 
                     isGuest={null} 
@@ -126,13 +126,13 @@ export default function Viewer() {
             {
                 isDelete && <RepoOwnerComponent isOwner={
                 <div className="absolute top-0 left-0 w-full h-full">
-                    <Modal title={`Do you want to delete post ${id} ?`} onClose={() => setIsDelete(false)}>
+                    <Modal title={`Do you want to delete post ${postID} ?`} onClose={() => setIsDelete(false)}>
                         <div className="w-full h-full flex flex-row">
                             <button 
                                 className={twMerge(BUTTON_CSS_CLASS, "flex-grow bg-red-500 border-red-900")}
                                 onClick={() => {
                                     const deletePost = async () => {
-                                        return blogState.deletePost(id);
+                                        return blogState.deletePost(postID);
                                     }
                                     deletePost().then((success: boolean) => { 
                                         if(success) {
