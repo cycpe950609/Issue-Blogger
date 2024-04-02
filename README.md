@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Issue Blogger
+Render/Manage Blog using Github's Issue.
 
-## Getting Started
+## Online demo
+* Url : [https://issue-blogger.vercel.app/](https://issue-blogger.vercel.app/)
 
-First, run the development server:
+## How to RUN ?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Put a .env file in the root of the project with the following environment variables
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+    |               變數                 |               說明                                                            |
+    | --------------------------------- | ------------------------------------------------------------------------------|
+    | GITHUB_CLIENT_ID                  | Client ID provided by GitHub when registing a OAUTH App                       |
+    | GITHUB_CLIENT_SECRET              | Client Secret provided by GitHub when registing a OAUTH App                   |
+    | GITHUB_UNAUTHENTICATED_TOKEN      | A Fine-grained personal access tokens for unauthenticated to access blogger   |
+    | GITHUB_ISSUE_BLOGGER_USERNAME     | The owner of the repo                                                         |
+    | GITHUB_ISSUE_BLOGGER_REPO_NAME    | The repo used as Blogger                                                      |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. Run at root of project
 
-## Learn More
+    *  `npm run dev`
 
-To learn more about Next.js, take a look at the following resources:
+3. Open the site `http://localhost:3000`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### There are four valid path:
+1. /       : Root. List the post.
+2. /viewer : Viewer. View the sepicific post. Viewer is a modal over on List.
+3. /editor : Post Editor. Editor for creating/modifing postes. Editor is a modal over on List.
+4. /login  : Login page. The page is used to validate if the user login sucessfully.
 
-## Deploy on Vercel
+#### NOTE: 
+* Modal is a slot of next.js layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### `utils` directory
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The directory provide some shared component/helper.
+
+### App structure
+
+* Server part:
+    1. Github (utils/github.ts) : Interactive with Github REST API (Get AccessToken, Load Issue, Update Issue, etc)
+    2. ErrorHandler (utils/errorHandlerServer.ts) : Each function provided by server should return corresponed status code and message. The unexpected error is hidden from return message.
+
+* UI part (include server component):
+    1. LoginState (utils/LoginStateContext.tsx) : Store the login state (is user login ?, is user is owner of the viewed repo) globally
+    2. BloggerList (utils/BloggerListContext.tsx) : Global `post` manager (List, Update, Delete, etc)
+    3. /       (page.tsx): List the post information stored in BloggerListContext.
+    4. /viewer (@modal/viewer/page.tsx): Viewer. Download post title/body from server 
+    5. /editor (@modal/editor/page.tsx): Post Editor. Validate length of title/body before sent to server
+    6. /login  (login/page.tsx): Login page. Redirect to Github when no valid `access_token`/`code`. Get `access_token` if has `code` in URLSearchParames. Validate `access_token` when present in cookies.
+    7. ErrorHandler (utils/errorHandlerClient.ts) : Handle the response from server. Redirect/Get response data according to the status code.
+
+
